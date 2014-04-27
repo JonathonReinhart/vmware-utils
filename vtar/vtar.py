@@ -1,6 +1,7 @@
 import sys
 import os, os.path
 import struct
+import argparse
 
 vmtar = struct.Struct('<'
     '100s'      # [0]  0x000 name
@@ -36,14 +37,27 @@ TAR_TYPE_SHAREDFILE   = '7'
 TAR_TYPE_GNU_LONGLINK = 'K'
 TAR_TYPE_GNU_LONGNAME = 'L'
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Extracts VMware ESXi .vtar files')
+    parser.add_argument('vtarfile', help='.vtar file')
+    parser.add_argument('-C', '--directory', metavar='DIR', help='Change to directory DIR')
+    
+    # Actions
+    grp = parser.add_mutually_exclusive_group(required=True)
+    grp.add_argument('-x', '--extract', action='store_true', help='Extract contents of vtarfile')
+    # TODO: Create
+    
+    return parser.parse_args()
+
+
 def main():
-    if len(sys.argv) < 2:
-        print 'Usage: {0} xxx.vtar'.format(os.path.basename(sys.argv[0]))
-        return 1
-        
-    extract = True
-        
-    with open(sys.argv[1], 'rb') as f:
+    args = parse_args()
+    print args
+
+    with open(args.vtarfile, 'rb') as f:
+    
+        if args.directory:
+            os.chdir(args.directory)
     
         print 'pos         type offset   txtoff   txtsz    nfix size     name'
     
@@ -70,7 +84,7 @@ def main():
             print '0x{0:08X}  {1}    {2:08X} {3:08X} {4:08X} {5:04X} {6:08X} {7}'.format(
                 pos, hdr_type, hdr_offset, hdr_textoffset, hdr_textsize, hdr_numfixuppgs, hdr_size, hdr_name)
                 
-            if not extract: continue
+            if not args.extract: continue
             
             if hdr_type == TAR_TYPE_DIR:
                 try:
