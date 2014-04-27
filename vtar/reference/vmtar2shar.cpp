@@ -1,4 +1,8 @@
-
+/*
+ * vmtar2shar.cpp
+ * http://encode.ru/threads/1400-VMware-tar-modification?p=27025
+ * http://nishi.dreamhosters.com/u/vmtar_1.rar
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
