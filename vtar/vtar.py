@@ -2,6 +2,7 @@ import sys
 import os, os.path
 import struct
 import argparse
+import gzip
 
 vmtar = struct.Struct('<'
     '100s'      # [0]  0x000 name
@@ -37,6 +38,8 @@ TAR_TYPE_SHAREDFILE   = '7'
 TAR_TYPE_GNU_LONGLINK = 'K'
 TAR_TYPE_GNU_LONGNAME = 'L'
 
+GZIP_MAGIC = '\037\213'
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Extracts VMware ESXi .vtar files')
     parser.add_argument('vtarfile', help='.vtar file')
@@ -54,8 +57,15 @@ def main():
     args = parse_args()
     print args
 
-    with open(args.vtarfile, 'rb') as f:
+    with open(args.vtarfile, 'rb') as raw_input_file:
     
+        gzip_header = raw_input_file.read(2)
+        raw_input_file.seek(0)
+        f = raw_input_file
+
+        if gzip_header == GZIP_MAGIC:
+            f = gzip.GzipFile(fileobj=raw_input_file)
+
         if args.directory:
             os.chdir(args.directory)
     
