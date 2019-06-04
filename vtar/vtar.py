@@ -65,27 +65,29 @@ def main():
         f = raw_input_file
 
         if gzip_header == GZIP_MAGIC:
-            print('Found GZIP_MAGIC')
+            print('Detected GZIP archive. For significant speed improvement decompress before running')
             f = gzip.GzipFile(fileobj=raw_input_file)
 
         if args.directory:
             os.chdir(args.directory)
 
         print 'pos         type offset   txtoff   txtsz    nfix size     name'
+        
+        # storage location when a longname is detected
         long_name=""
         while True:
             pos = f.tell()
 
             buf = f.read(vmtar.size)
             if len(buf) < vmtar.size:
-                print('except')
                 raise Exception('Short read at 0x{0:X}'.format(pos))
 
             obj = vmtar.unpack(buf)
 
             hdr_magic       = obj[9]
+            
+            # Most likely means we are at the end of the file. Or something went wrong
             if hdr_magic != 'visor ':
-                # print ('not visor', hdr_magic, "0x{0:08X}".format(f.tell()))
                 break
 
             hdr_type        = obj[7]
@@ -100,7 +102,6 @@ def main():
                 pos, hdr_type, hdr_offset, hdr_textoffset, hdr_textsize, hdr_numfixuppgs, hdr_size, hdr_name)
 
             if not args.extract:
-                print('continue')
                 continue
 
             if hdr_type == TAR_TYPE_DIR:
@@ -129,13 +130,12 @@ def main():
                 f.seek(pos, os.SEEK_SET)
 
             if hdr_type == TAR_TYPE_GNU_LONGNAME:
-                print('longname')
-                # seek length of header to next block
+                # Seek to the end of the current block
                 f.seek(f.tell(), os.SEEK_SET)
-                # print ('now at', "0x{0:08X}".format(f.tell()))
-                # read the whole block as the file name
+                # Read the whole next block as the file name.
                 long_name = f.read(vmtar.size).rstrip('\0')
-                # break
+                #@todo not sure this handles files whose name is greater than 1 block in length
+                # Great explanation here: https://stackoverflow.com/a/2079165/429544
 
 
 if __name__ == '__main__':
