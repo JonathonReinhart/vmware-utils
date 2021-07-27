@@ -102,7 +102,7 @@ def main():
                 except OSError:
                     pass
             
-            if hdr_type == TAR_TYPE_FILE:
+            if hdr_type in [TAR_TYPE_FILE,TAR_TYPE_SHAREDFILE]:
                 pos = f.tell()
                 f.seek(hdr_offset, os.SEEK_SET)
                 
